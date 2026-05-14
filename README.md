@@ -1,23 +1,31 @@
-![](blog/images/claude-code-router-img.png)
+# Claude Code Router
 
-[![](https://img.shields.io/badge/%F0%9F%87%A8%F0%9F%87%B3-%E4%B8%AD%E6%96%87%E7%89%88-ff0000?style=flat)](README_zh.md)
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?&logo=discord&logoColor=white)](https://discord.gg/rdftVMaUcS)
-[![](https://img.shields.io/github/license/musistudio/claude-code-router)](https://github.com/musistudio/claude-code-router/blob/main/LICENSE)
+A powerful tool to route Claude Code requests to different models and customize any request.
 
-<hr>
+## About This Fork
 
-![](blog/images/sponsors/glm-en.jpg)
-> This project is sponsored by Z.ai, supporting us with their GLM CODING PLAN.
+This is a personal fork of [musistudio/claude-code-router](https://github.com/musistudio/claude-code-router). The original project is an excellent open-source routing solution maintained by the musistudio team.
 
-> GLM CODING PLAN is a subscription service designed for AI coding, starting at just $10/month. It provides access to their flagship GLM-4.7 & （GLM-5 Only Available  for Pro Users）model across 10+ popular AI coding tools (Claude Code, Cline, Roo Code, etc.), offering developers top-tier, fast, and stable coding experiences.
+### Differences from the Original
 
-> Get 10% OFF GLM CODING PLAN：https://z.ai/subscribe?ic=8JVLJQFSKB  
+- **Advertising Removed**: This version removes promotional content and sponsorship messaging to focus on core functionality documentation.
+- **Pre-configured Providers**: Comes with a broader set of pre-configured LLM providers (Cloudflare, Groq, Google AI Studio, NVIDIA, Mistral, Cohere, Cerebras) with support for multi-account routing.
+- **Local Setup Documentation**: Includes setup instructions tailored for local deployment and development.
 
-> [Progressive Disclosure of Agent Tools from the Perspective of CLI Tool Style](/blog/en/progressive-disclosure-of-agent-tools-from-the-perspective-of-cli-tool-style.md)
+### Why This Fork Was Created
 
-> A powerful tool to route Claude Code requests to different models and customize any request.
+This fork was created to:
+1. Provide a clean, advertising-free version of the documentation
+2. Demonstrate multi-provider routing setup with multiple accounts per provider
+3. Enable rapid local deployment and testing of the Claude Code Router
+4. Serve as a reference implementation for advanced routing configurations
 
-![](blog/images/claude-code.png)
+### Original Project
+
+For the full documentation, upstream updates, and the original community, please visit:
+- **Repository**: https://github.com/musistudio/claude-code-router
+- **Discord**: https://discord.gg/rdftVMaUcS
+- **License**: MIT (see LICENSE file)
 
 ## ✨ Features
 
@@ -316,8 +324,6 @@ ccr ui
 
 This will open a web-based interface where you can easily view and edit your `config.json` file.
 
-![UI](/blog/images/ui.png)
-
 ### 5. CLI Model Management
 
 For users who prefer terminal-based workflows, you can use the interactive CLI model selector:
@@ -325,7 +331,6 @@ For users who prefer terminal-based workflows, you can use the interactive CLI m
 ```shell
 ccr model
 ```
-![](blog/images/models.gif)
 
 This command provides an interactive interface to:
 
