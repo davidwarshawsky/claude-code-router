@@ -1,7 +1,7 @@
 {
-  "name": "@musistudio/claude-code-router",
+  "name": "@davidwarshawsky/claude-code-router",
   "version": "2.0.0",
-  "description": "Use Claude Code without an Anthropics account and route it to another LLM provider",
+  "description": "Intelligent routing gateway for Claude Code - route requests to multiple LLM providers with scenario-based routing, multi-account support, and advanced transformations",
   "scripts": {
     "build": "pnpm build:shared && pnpm build:core && pnpm build:server && pnpm build:cli && pnpm build:ui",
     "build:core": "pnpm --filter @musistudio/llms build",
@@ -35,8 +35,16 @@
     "llm",
     "anthropic"
   ],
-  "author": "musistudio",
+  "author": "davidwarshawsky",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidwarshawsky/claude-code-router.git"
+  },
+  "homepage": "https://github.com/davidwarshawsky/claude-code-router",
+  "bugs": {
+    "url": "https://github.com/davidwarshawsky/claude-code-router/issues"
+  },
   "devDependencies": {
     "@types/node": "^24.0.15",
     "esbuild": "^0.25.1",

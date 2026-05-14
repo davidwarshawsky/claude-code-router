@@ -1,0 +1,20 @@
+# .npmrc Configuration Example
+# Copy this to ~/.npmrc and replace YOUR_NPM_TOKEN with your actual npm token
+
+# For public npm registry (npm.org)
+# @davidwarshawsky:registry=https://registry.npmjs.org/
+
+# For GitHub Package Registry
+# @davidwarshawsky:registry=https://npm.pkg.github.com
+# //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+
+# Authentication token for npm registry
+# //registry.npmjs.org/:_authToken=YOUR_NPM_TOKEN
+
+# To generate npm token:
+# 1. Visit https://npmjs.com/settings/tokens
+# 2. Create a new "Publish" token
+# 3. Copy and use in this file
+
+# Make sure to place the real .npmrc in your home directory:
+# ~/.npmrc

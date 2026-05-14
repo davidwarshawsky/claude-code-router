@@ -79,11 +79,33 @@ First, ensure you have [Claude Code](https://docs.anthropic.com/en/docs/claude-c
 npm install -g @anthropic-ai/claude-code
 ```
 
-Then, install Claude Code Router:
+Then, install this Claude Code Router fork:
 
 ```shell
-npm install -g @musistudio/claude-code-router
+npm install -g @davidwarshawsky/claude-code-router
 ```
+
+**Note**: This package is published under the `@davidwarshawsky` scope. Ensure your `.npmrc` is configured with appropriate authentication if using a private registry.
+
+#### .npmrc Configuration
+
+If you're installing from a private npm registry, configure your `.npmrc` file in your home directory (`~/.npmrc`):
+
+```ini
+# For GitHub Package Registry
+@davidwarshawsky:registry=https://npm.pkg.github.com
+
+# For npm token authentication
+//npm.pkg.github.com/:_authToken=YOUR_NPM_TOKEN
+
+# For public npm registry (default)
+@davidwarshawsky:registry=https://registry.npmjs.org/
+```
+
+To generate an npm token:
+1. Visit https://npmjs.com/settings/tokens
+2. Create a new token with read access
+3. Copy the token and add to your `.npmrc`
 
 ### 2. Configuration
 
