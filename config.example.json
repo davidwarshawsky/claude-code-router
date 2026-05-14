@@ -1,0 +1,127 @@
+{
+  "_comment": "Copy to ~/.claude-code-router/config.json and fill in your real API keys. Run 'ccr models' to discover available models per provider.",
+  "APIKEY": "your-ccr-access-key",
+  "HOST": "127.0.0.1",
+  "PORT": 3456,
+  "API_TIMEOUT_MS": 600000,
+  "LOG": true,
+  "LOG_LEVEL": "info",
+  "Providers": [
+    {
+      "_comment": "Cloudflare Workers AI — uses {account_id} URL templating and multi-account rotation",
+      "name": "cloudflare-large",
+      "api_base_url": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions",
+      "accounts": [
+        {
+          "id": "your-cloudflare-account-id-1",
+          "key": "cfut_your-workers-api-key-1",
+          "email": "account1@example.com",
+          "label": "Account 1"
+        },
+        {
+          "id": "your-cloudflare-account-id-2",
+          "key": "cfut_your-workers-api-key-2",
+          "email": "account2@example.com",
+          "label": "Account 2"
+        }
+      ],
+      "models": [
+        "@cf/nvidia/nemotron-3-120b-a12b",
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "@cf/qwen/qwen2.5-coder-32b-instruct",
+        "@cf/meta/llama-4-scout-17b-16e-instruct",
+        "@cf/meta/llama-3.2-3b-instruct"
+      ]
+    },
+    {
+      "_comment": "Groq — uses dedicated groq transformer to strip cache_control",
+      "name": "groq",
+      "api_base_url": "https://api.groq.com/openai/v1/chat/completions",
+      "accounts": [
+        { "key": "gsk_your-groq-api-key-1", "email": "dev@example.com", "label": "Key 1" },
+        { "key": "gsk_your-groq-api-key-2", "email": "dev@example.com", "label": "Key 2" }
+      ],
+      "models": [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant"
+      ],
+      "transformer": { "use": ["groq"] }
+    },
+    {
+      "_comment": "Mistral — OpenAI-compatible",
+      "name": "mistral",
+      "api_base_url": "https://api.mistral.ai/v1/chat/completions",
+      "accounts": [
+        { "key": "your-mistral-api-key", "email": "dev@example.com", "label": "Key 1" }
+      ],
+      "models": [
+        "mistral-small-latest",
+        "mistral-large-latest",
+        "codestral-latest"
+      ],
+      "transformer": { "use": ["openai"] }
+    },
+    {
+      "_comment": "NVIDIA NIM — model names use org/model format",
+      "name": "nvidia",
+      "api_base_url": "https://integrate.api.nvidia.com/v1/chat/completions",
+      "accounts": [
+        { "key": "nvapi-your-nvidia-api-key", "email": "dev@example.com", "label": "Key 1" }
+      ],
+      "models": [
+        "meta/llama-3.3-70b-instruct",
+        "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+      ],
+      "transformer": { "use": ["openai"] }
+    },
+    {
+      "_comment": "Cohere — must use compatibility/v1 endpoint (not native v2/chat)",
+      "name": "cohere",
+      "api_base_url": "https://api.cohere.com/compatibility/v1/chat/completions",
+      "accounts": [
+        { "key": "your-cohere-api-key", "email": "dev@example.com", "label": "Key 1" }
+      ],
+      "models": [
+        "command-a-03-2025",
+        "command-r7b-12-2024"
+      ],
+      "transformer": { "use": ["openai"] }
+    },
+    {
+      "_comment": "Google AI Studio (Gemini) — free tier, uses OpenAI-compatible endpoint",
+      "name": "aistudio",
+      "api_base_url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "accounts": [
+        { "key": "AIzaSy-your-gemini-api-key-1", "email": "dev@example.com", "label": "Key 1" },
+        { "key": "AIzaSy-your-gemini-api-key-2", "email": "dev@example.com", "label": "Key 2" }
+      ],
+      "models": [
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "transformer": { "use": ["openai"] }
+    },
+    {
+      "_comment": "Cerebras — extremely fast inference, OpenAI-compatible",
+      "name": "cerebras",
+      "api_base_url": "https://api.cerebras.ai/v1/chat/completions",
+      "accounts": [
+        { "key": "csk-your-cerebras-api-key", "email": "dev@example.com", "label": "Key 1" }
+      ],
+      "models": [
+        "llama3.1-8b",
+        "qwen-3-235b-a22b-instruct-2507"
+      ],
+      "transformer": { "use": ["openai"] }
+    }
+  ],
+  "Router": {
+    "_comment": "Route format: 'providerName,modelName' — controls which model handles each request type",
+    "default": "cloudflare-large,@cf/nvidia/nemotron-3-120b-a12b",
+    "background": "groq,llama-3.1-8b-instant",
+    "think": "cloudflare-large,@cf/nvidia/nemotron-3-120b-a12b",
+    "longContext": "mistral,mistral-large-latest",
+    "webSearch": "aistudio,gemini-2.5-flash"
+  }
+}
