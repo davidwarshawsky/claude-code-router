@@ -29,13 +29,45 @@ For the full documentation, upstream updates, and the original community, please
 
 ## ✨ Features
 
-- **Model Routing**: Route requests to different models based on your needs (e.g., background tasks, thinking, long context).
-- **Multi-Provider Support**: Supports various model providers like OpenRouter, DeepSeek, Ollama, Gemini, Volcengine, and SiliconFlow.
-- **Request/Response Transformation**: Customize requests and responses for different providers using transformers.
-- **Dynamic Model Switching**: Switch models on-the-fly within Claude Code using the `/model` command.
-- **CLI Model Management**: Manage models and providers directly from the terminal with `ccr model`.
-- **GitHub Actions Integration**: Trigger Claude Code tasks in your GitHub workflows.
-- **Plugin System**: Extend functionality with custom transformers.
+### Core Routing
+- **Intelligent Scenario-Based Routing**: Automatically route requests based on context
+  - `default`: Standard requests
+  - `background`: Lightweight background tasks
+  - `think`: Thinking/reasoning-intensive operations (Plan Mode)
+  - `longContext`: Automatically triggered for requests exceeding token thresholds
+  - `webSearch`: Web search-related operations
+  - `image`: Image processing and analysis tasks
+- **Token-Aware Routing**: Automatic token counting (cl100k_base) to intelligently select models based on context length requirements
+- **Multi-Provider Support**: Supports 15+ providers including OpenRouter, DeepSeek, Ollama, Gemini, Volcengine, SiliconFlow, Cloudflare, Groq, NVIDIA, Mistral, Cohere, Cerebras, and more
+- **Multi-Account Routing**: Multiple API keys per provider with automatic rotation and exhaustion detection
+  - Automatic account rotation on rate limits and quota exhaustion
+  - Usage tracking with daily reset
+  - Per-account status monitoring (active/exhausted/rate_limited)
+
+### Advanced Features
+- **Request/Response Transformation**: Customize requests and responses for different providers using a flexible transformer system
+- **Dynamic Model Switching**: Switch models on-the-fly within Claude Code using the `/model` command
+- **Custom Router Functions**: Write custom JavaScript routing logic for complex scenarios
+- **Project-Level Configuration**: Define routing rules per project at `~/.claude/projects/<project-id>/claude-code-router.json`
+- **Preset System**: Schema-based configuration templates for easy sharing and reuse
+  - Export/import presets with sensitive data protection
+  - Marketplace integration for discovering community presets
+  - Conditional field support with template interpolation
+
+### Developer Tools
+- **Web UI Dashboard**: Full-featured interface for managing providers, accounts, models, and presets
+- **CLI Model Management**: Interactive terminal UI (`ccr model`) for configuration without editing JSON
+- **Usage Tracking & Analytics**: Monitor API consumption per provider and account
+- **Plugin System**: Extend functionality with custom transformers and plugins
+- **Agent System**: Extensible architecture for custom tools and workflows
+- **Non-Interactive Mode**: Full CI/CD support for Docker, GitHub Actions, and automated environments
+
+### Deployment & Operations
+- **GitHub Actions Integration**: Trigger Claude Code tasks in your workflows
+- **Logging System**: Dual logging (server-level and application-level) with auto-rotating files
+- **Environment Variable Interpolation**: Secure API key management via `$VAR_NAME` syntax
+- **Health Monitoring**: Built-in health checks and status endpoints
+- **Proxy Support**: Configure proxy for API requests
 
 ## 🚀 Getting Started
 
@@ -412,6 +444,318 @@ The `activate` command sets the following environment variables:
 - `API_TIMEOUT_MS`: API timeout from your configuration
 
 > **Note**: Make sure the Claude Code Router service is running (`ccr start`) before using the activated environment variables. The environment variables are only valid for the current shell session. To make them persistent, you can add `eval "$(ccr activate)"` to your shell configuration file (e.g., `~/.zshrc` or `~/.bashrc`).
+
+## 🔀 Advanced Routing Features
+
+### Multi-Account Routing
+
+Claude Code Router supports multiple API keys per provider with automatic account rotation and exhaustion handling. This allows you to maximize throughput and handle rate limits gracefully.
+
+```json
+{
+  "name": "cloudflare-large",
+  "api_base_url": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions",
+  "accounts": [
+    {
+      "id": "account-id-1",
+      "key": "cf-token-1",
+      "email": "user1@example.com",
+      "label": "Production Account"
+    },
+    {
+      "id": "account-id-2",
+      "key": "cf-token-2",
+      "email": "user2@example.com",
+      "label": "Backup Account"
+    }
+  ],
+  "models": ["@cf/nvidia/nemotron-3-120b-a12b", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"]
+}
+```
+
+**Features:**
+- **Automatic Rotation**: Requests are distributed across accounts
+- **Exhaustion Detection**: Detects HTTP 429 (rate limit) and quota errors
+- **Usage Tracking**: Monitor API consumption per account with daily reset
+- **Account Status**: Track which accounts are active, exhausted, or rate-limited
+
+### Scenario-Based Routing
+
+Claude Code Router intelligently routes requests based on operation type and context:
+
+```json
+{
+  "Router": {
+    "default": "provider-name,model-name",
+    "background": "provider-name,lightweight-model",
+    "think": "provider-name,reasoning-model",
+    "longContext": "provider-name,large-context-model",
+    "longContextThreshold": 60000,
+    "webSearch": "provider-name,search-capable-model",
+    "image": "provider-name,vision-model"
+  }
+}
+```
+
+**Routing Types:**
+- **`default`**: Standard requests
+- **`background`**: Lightweight tasks (background processing)
+- **`think`**: Thinking-intensive operations (Plan Mode)
+- **`longContext`**: Automatically used when token count exceeds `longContextThreshold`
+- **`webSearch`**: Web search-related operations
+- **`image`**: Image processing and analysis tasks
+
+The router automatically calculates token counts using cl100k_base tokenizer to determine when to use `longContext` models.
+
+### Custom Router Functions
+
+For complex routing logic, define custom JavaScript functions:
+
+```json
+{
+  "Router": {
+    "customFunction": "~/.claude-code-router/router.js"
+  }
+}
+```
+
+Your custom router function receives request context and returns the routing decision:
+
+```javascript
+// ~/.claude-code-router/router.js
+module.exports = {
+  route: async (context) => {
+    // context includes: messages, model, tools, etc.
+    if (context.messages.length > 100) {
+      return { provider: "groq", model: "llama-3.3-70b-versatile" };
+    }
+    return { provider: "default", model: "default" };
+  }
+};
+```
+
+### Project-Level Configuration
+
+Define routing rules specific to individual projects:
+
+```json
+// ~/.claude/projects/<project-id>/claude-code-router.json
+{
+  "Router": {
+    "default": "groq,llama-3.3-70b-versatile",
+    "think": "cloudflare-large,@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  },
+  "Providers": []  // Optional provider overrides
+}
+```
+
+Project configurations override global settings, allowing fine-grained control per project.
+
+### Usage Tracking & Monitoring
+
+Monitor API consumption and provider health:
+
+```shell
+# View usage statistics
+curl http://127.0.0.1:3456/api/usage
+
+# Check provider account status
+curl http://127.0.0.1:3456/api/providers/cloudflare/accounts
+
+# Get server health status
+curl http://127.0.0.1:3456/health
+```
+
+Access usage analytics and account status through the Web UI Dashboard.
+
+## 📦 Project Architecture
+
+Claude Code Router is a **monorepo** consisting of 5 main packages:
+
+### Core Packages
+
+#### 1. **@musistudio/llms** (packages/core)
+The universal LLM API transformation engine. This is the routing and transformation backbone.
+
+**Responsibilities:**
+- Request routing based on configuration and scenarios
+- Provider-agnostic API transformation (converts between Anthropic, OpenAI, and provider-specific formats)
+- Token counting using cl100k_base tokenizer
+- Account rotation and usage tracking for multi-account providers
+- Stream processing and response transformation
+
+**Key Features:**
+- Supports 15+ LLM providers
+- Automatic request/response transformation
+- Token-aware routing
+- Multi-account exhaustion handling
+- Custom transformer support
+
+#### 2. **@CCR/server** (packages/server)
+Express-based HTTP server wrapping the core routing engine.
+
+**Provides:**
+- `/v1/messages` - Claude API compatibility
+- `/v1/chat/completions` - OpenAI API compatibility
+- `/api/providers/*` - Provider management CRUD endpoints
+- `/api/usage` - Usage analytics and statistics
+- `/api/accounts` - Multi-account status tracking
+- `/health` - Health check endpoint
+- RESTful configuration management
+
+**Features:**
+- Health monitoring and status tracking
+- Request logging and debugging
+- Provider discovery and validation
+- Dynamic model refresh
+- Preset routing namespaces
+
+#### 3. **@CCR/cli** (packages/cli)
+Command-line interface for managing Claude Code Router.
+
+**Commands:**
+- `ccr start/stop/restart/status` - Service management
+- `ccr code "prompt"` - Execute Claude Code
+- `ccr model` - Interactive model selector
+- `ccr models` - List available models
+- `ccr preset export/install/list/delete` - Preset management
+- `ccr ui` - Launch web UI
+- `ccr activate` - Setup shell environment variables
+- `ccr install` - GitHub marketplace integration
+- `ccr logs` - View service logs
+
+**Features:**
+- Interactive terminal UI using Ink + React
+- Real-time model switching
+- Preset marketplace integration
+- Environment variable setup for shell integration
+- Service lifecycle management
+
+#### 4. **@CCR/ui** (packages/ui)
+React + Vite + Tailwind CSS web dashboard.
+
+**Pages:**
+- **Dashboard**: Overview and quick actions
+- **Provider Management**: Configure providers, add accounts, manage models
+- **Model Selection**: Choose default models for each scenario
+- **Preset Manager**: Create, export, install, and share presets
+- **Account Manager**: Monitor multi-account status and usage
+- **Configuration Editor**: JSON editor with validation
+- **Request History**: Track and analyze API requests
+- **Debug Console**: System diagnostics and logs
+- **Login**: API key authentication
+
+**Features:**
+- Real-time provider status
+- Usage analytics dashboard
+- Multi-language support (English, Chinese)
+- Dark/light theme support
+- Responsive design for desktop and mobile
+
+#### 5. **@CCR/shared** (packages/shared)
+Shared utilities and constants used across packages.
+
+**Exports:**
+- Type definitions for configuration schema
+- Preset manifest schema and validation
+- Environment variable helpers
+- Logging utilities
+- Constants and enums
+
+### Monorepo Scripts
+
+**Build Commands:**
+```bash
+pnpm build              # Build all packages
+pnpm build:core        # Build core LLM routing engine
+pnpm build:shared      # Build shared utilities
+pnpm build:cli         # Build CLI tool
+pnpm build:server      # Build HTTP server
+pnpm build:ui          # Build web UI
+pnpm build:docs        # Build documentation site
+```
+
+**Development Commands:**
+```bash
+pnpm dev:cli           # CLI development mode with hot reload
+pnpm dev:server        # Server development mode
+pnpm dev:ui            # Web UI development mode with hot reload
+pnpm dev:core          # Core engine development mode
+pnpm dev:docs          # Documentation site development
+```
+
+**Other Commands:**
+```bash
+pnpm test:providers    # Smoke test all configured providers
+pnpm release           # Release all packages
+pnpm release:npm       # Release to npm only
+pnpm release:docker    # Release Docker image
+```
+
+## 🌐 Web UI & Dashboard
+
+The Web UI provides a comprehensive management interface accessible at `http://127.0.0.1:3456` (or configured port).
+
+**Dashboard Features:**
+- Real-time provider and account status
+- API usage metrics and trends
+- Model switching interface
+- Configuration management
+- Preset creation and sharing
+- Request history and debugging
+
+**Key Screens:**
+- **Provider Dashboard**: Overview of all configured providers with account status
+- **Model Manager**: Set default models for each routing scenario
+- **Preset Editor**: Create presets with conditional fields and templates
+- **Usage Analytics**: Monitor API consumption, costs, and performance
+- **System Status**: Health checks, service logs, and diagnostics
+
+Access the UI with:
+```bash
+ccr ui
+```
+
+## 📋 CLI Commands Reference
+
+### Service Management
+```bash
+ccr start              # Start the router service
+ccr stop               # Stop the router service
+ccr restart            # Restart the service
+ccr status             # Show service status
+ccr logs               # Display service logs
+```
+
+### Code Execution
+```bash
+ccr code               # Start interactive Claude Code session
+ccr code -p "prompt"   # Run non-interactive with prompt
+```
+
+### Model Management
+```bash
+ccr model              # Interactive model selector
+ccr models             # List all available models
+ccr models --json      # Output as JSON
+```
+
+### Preset Management
+```bash
+ccr preset export <name> [options]     # Export current config as preset
+ccr preset install <path>              # Install preset from directory
+ccr preset install <url>               # Install preset from URL
+ccr preset list                        # List installed presets
+ccr preset info <name>                 # Show preset details
+ccr preset delete <name>               # Remove a preset
+```
+
+### Configuration
+```bash
+ccr activate           # Output environment variables
+eval "$(ccr activate)" # Set environment variables in shell
+ccr config             # Open config file in editor
+```
 
 #### Providers
 
